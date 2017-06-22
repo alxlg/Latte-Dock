@@ -32,6 +32,7 @@
 
 #include <KLocalizedContext>
 #include <KDeclarative/KDeclarative>
+#include <KWindowSystem>
 
 #include <Plasma/Package>
 
@@ -45,7 +46,7 @@ DockConfigView::DockConfigView(Plasma::Containment *containment, DockView *dockV
       m_blockFocusLost(false),
       m_dockView(dockView)
 {
-    //setupWaylandIntegration();
+    setupWaylandIntegration();
 
     setScreen(m_dockView->screen());
 
@@ -62,12 +63,12 @@ DockConfigView::DockConfigView(Plasma::Containment *containment, DockView *dockV
         //WindowSystem::self().setDockExtraFlags(*this);
         setFlags(wFlags());
         syncGeometry();
-        syncSlideEffect();
+        //syncSlideEffect();
     });
     connections << connect(dockView->visibility(), &VisibilityManager::modeChanged, this, &DockConfigView::syncGeometry);
     connections << connect(containment, &Plasma::Containment::immutabilityChanged, this, &DockConfigView::immutabilityChanged);
     connections << connect(containment, &Plasma::Containment::locationChanged, [&]() {
-        syncSlideEffect();
+        //syncSlideEffect();
         QTimer::singleShot(200, this, &DockConfigView::syncGeometry);
     });
 
@@ -82,6 +83,7 @@ DockConfigView::DockConfigView(Plasma::Containment *containment, DockView *dockV
 DockConfigView::~DockConfigView()
 {
     qDebug() << "DockConfigView deleting ...";
+    m_screenSyncTimer.stop();
 
     foreach (auto var, connections) {
         QObject::disconnect(var);
@@ -217,15 +219,17 @@ void DockConfigView::syncSlideEffect()
 
 void DockConfigView::showEvent(QShowEvent *ev)
 {
-    QQuickWindow::showEvent(ev);
+    //WindowSystem::self().setDockExtraFlags(*this);
+    if (KWindowSystem::isPlatformWayland() && !m_shellSurface) {
+        return;
+    }
 
-    WindowSystem::self().setDockExtraFlags(*this);
     setFlags(wFlags());
 
     WindowSystem::self().enableBlurBehind(*this);
 
     syncGeometry();
-    syncSlideEffect();
+    //syncSlideEffect();
 
     if (m_dockView && m_dockView->containment())
         m_dockView->containment()->setUserConfiguring(true);
@@ -233,6 +237,7 @@ void DockConfigView::showEvent(QShowEvent *ev)
     m_screenSyncTimer.start();
     QTimer::singleShot(400, this, &DockConfigView::syncGeometry);
 
+    QQuickWindow::showEvent(ev);
     emit showSignal();
 }
 
@@ -309,7 +314,7 @@ void DockConfigView::setupWaylandIntegration()
 
         m_shellSurface = interface->createSurface(s, this);
 
-        syncGeometry();
+        //syncGeometry();
     }
 }
 
