@@ -284,7 +284,8 @@ void DockConfigView::focusOutEvent(QFocusEvent *ev)
         return;
 
     if (!m_blockFocusLost) {
-        setVisible(false);
+        close();
+        //setVisible(false);
         //hide();
     }
 }
@@ -314,7 +315,7 @@ void DockConfigView::setupWaylandIntegration()
 
         m_shellSurface = interface->createSurface(s, this);
 
-        //syncGeometry();
+        syncGeometry();
     }
 }
 
@@ -351,7 +352,8 @@ bool DockConfigView::event(QEvent *e)
 void DockConfigView::immutabilityChanged(Plasma::Types::ImmutabilityType type)
 {
     if (type != Plasma::Types::Mutable && isVisible()) {
-        setVisible(false);
+        close();
+        //setVisible(false);
         //hide();
     }
 }
@@ -374,7 +376,8 @@ void DockConfigView::addPanelSpacer()
 
 void DockConfigView::hideConfigWindow()
 {
-    setVisible(false);
+    close();
+    //setVisible(false);
     //hide();
 }
 
